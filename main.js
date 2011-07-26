@@ -20,7 +20,7 @@ $(function() {
 		
 		infowindow = new google.maps.InfoWindow();
 		
-		$.getJSON('http://search.twitter.com/search.json?geocode='+latitude+','+longitude+',1km&callback=?', function(data) {
+		$.getJSON('http://search.twitter.com/search.json?geocode='+latitude+','+longitude+',1km&result_type=recent&rpp=100&callback=?', function(data) {
 			if (data.results) {
 
 				for (i = 0; i < data.results.length; i++) {  
