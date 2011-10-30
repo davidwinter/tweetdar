@@ -10,19 +10,29 @@ body {
 	font-size: 0.625em;
 }
 
-#gmap {
+#map {
 	width: 100%;
 	height: 100%;
 }
 
 .tweet_content {
 	font-family: Helvetica, Arial;
-	width: 400px;
 	font-size: 1.1em;
+	width: 260px;
 }
 
 .tweet_content img {
-	float: left;
+	float: right;
 	vertical-align: center;
-	margin-right: 5px;
+	margin-left: 5px;
+	margin-bottom: 5px;
+}
+
+.tweet_content blockquote {
+	margin: 0px;
+	margin-bottom: 5px;
+}
+
+.tweet_user {
+	font-weight: bold;
 }
