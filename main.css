@@ -37,3 +37,18 @@ body {
 .tweet_user {
 	font-weight: bold;
 }
+
+#message {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	background: rgba(255,255,255,0.8);
+	text-align: center;
+	font-family: Helvetica, Arial;
+	padding: 5px;
+	margin: 0 20px;
+	font-size: 2em;
+	text-transform: lowercase;
+	border-radius: 0 0 10px 10px;
+}
