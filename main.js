@@ -1,9 +1,14 @@
+var map, polyline, tweets = {};
+
 function get_tweets(latitude, longitude, tweet_loop) {
 	$.getJSON('http://search.twitter.com/search.json?geocode='+latitude+','+longitude+',1km&result_type=recent&rpp=100&callback=?', function(data) {
 		if (data.results) {
 			for (i = 0; i < data.results.length; i++) {  
 				if (data.results[i].geo) {
-					tweet_loop(data.results[i]);
+					if (tweets[data.results[i]['id']] === undefined) {
+						tweets[data.results[i]['id']] = data.results[i];
+						tweet_loop(data.results[i]);
+					}
 				}
 			}				
 		}
@@ -28,8 +33,30 @@ $(function() {
 		
 		var current_location = new L.LatLng(position.coords.latitude, position.coords.longitude);
 		map.setView(current_location, 15).addLayer(cloudmade);
+		update_position_leaflet(map, position.coords.latitude, position.coords.longitude);
 
-		get_tweets(position.coords.latitude, position.coords.longitude, function(tweet) {
+		$('#message').html('Locating&hellip;');
+
+		polyline = new L.Polyline([current_location], {color: 'red'});
+		map.addLayer(polyline);
+
+		map.locateAndSetView(15);
+
+		map.on('locationfound', function(e) {
+			update_poly(e.latlng);
+			$('#message').fadeOut();
+			update_position_leaflet(map, e.latlng.lat, e.latlng.lng);
+		});
+
+		
+	}
+
+	function update_poly(latlng) {
+		polyline.addLatLng(latlng);
+	}
+
+	function update_position_leaflet(map, latitude, longitude) {
+		get_tweets(latitude, longitude, function(tweet) {
 			marker = new L.Marker(new L.LatLng(tweet.geo.coordinates[0], tweet.geo.coordinates[1]));
 			map.addLayer(marker);
 			marker.bindPopup(tweet_popup(tweet));
