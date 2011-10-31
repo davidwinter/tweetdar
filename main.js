@@ -31,18 +31,19 @@ $(function() {
 		var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/ce3741232bc240ad97bdba9bc6bde548/997/256/{z}/{x}/{y}.png',
 		    cloudmade = new L.TileLayer(cloudmadeUrl, { maxZoom: 18 });
 		
-		var current_location = new L.LatLng(position.coords.latitude, position.coords.longitude);
-		map.setView(current_location, 15).addLayer(cloudmade);
-		update_position_leaflet(map, position.coords.latitude, position.coords.longitude);
+		//var current_location = new L.LatLng(position.coords.latitude, position.coords.longitude);
+		map.setView(new L.LatLng(51.505, -0.09), 15).addLayer(cloudmade);
+		//update_position_leaflet(map, position.coords.latitude, position.coords.longitude);
 
 		$('#message').html('<ul><li>Locating&hellip;</li></ul>');
 
-		polyline = new L.Polyline([current_location], {color: 'red'});
-		map.addLayer(polyline);
+		//polyline = new L.Polyline([current_location], {color: 'red'});
+		//map.addLayer(polyline);
 
 		map.locateAndSetView(15);
 
 		map.on('locationfound', function(e) {
+			//map.setView(e.latlng);
 			$('#message ul').append('<li>'+e.latlng.lat+','+e.latlng.lng+'</li>');
 			update_poly(e.latlng);
 			//$('#message').fadeOut();
@@ -53,7 +54,11 @@ $(function() {
 	}
 
 	function update_poly(latlng) {
-		polyline.addLatLng(latlng);
+		if (polyline === undefined) {
+			polyline = new L.Polyline([latlng], {color: 'red'});
+		} else {
+			polyline.addLatLng(latlng);
+		}
 	}
 
 	function update_position_leaflet(map, latitude, longitude) {
