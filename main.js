@@ -35,7 +35,7 @@ $(function() {
 		map.setView(current_location, 15).addLayer(cloudmade);
 		update_position_leaflet(map, position.coords.latitude, position.coords.longitude);
 
-		$('#message').html('Locating&hellip;');
+		$('#message').html('<ul><li>Locating&hellip;</li></ul>');
 
 		polyline = new L.Polyline([current_location], {color: 'red'});
 		map.addLayer(polyline);
@@ -43,8 +43,9 @@ $(function() {
 		map.locateAndSetView(15);
 
 		map.on('locationfound', function(e) {
+			$('#message ul').append('<li>'+e.latlng.lat+','+e.latlng.lng+'</li>');
 			update_poly(e.latlng);
-			$('#message').fadeOut();
+			//$('#message').fadeOut();
 			update_position_leaflet(map, e.latlng.lat, e.latlng.lng);
 		});
 
