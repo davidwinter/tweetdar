@@ -1,37 +1,116 @@
-var map, polyline, tweets = {};
+var tweetdar, tweets = {};
 
 var Tweetdar = function() {
-	this.message = '';
+	this.message = $('#message');
+	
+	this.map_options = {
+		zoom: 15,
+		center: new google.maps.LatLng(51.505, -0.09),
+		mapTypeId: google.maps.MapTypeId.ROADMAP
+	};
+
+	this.map = new google.maps.Map(
+		document.getElementById("map"),
+        this.map_options
+	);
+
+	this.poly_options = {
+		strokeColor: '#ff0000',
+		strokeOpacity: 1.0,
+		strokeWeight: 3
+	}
+
+	this.poly = new google.maps.Polyline(this.poly_options);
+
+	this.watch_id = false;
+
+	this.last_update = false;
+
+	this.infowindow = new google.maps.InfoWindow();
 };	
 
 Tweetdar.prototype.init_map = function() {
-	this.message = $('#message');
-	this.map = 	new L.Map('map', {
-		scrollWheelZoom: false
-	});
 
-	this.cloudmadeUrl = 'http://{s}.tile.cloudmade.com/ce3741232bc240ad97bdba9bc6bde548/997/256/{z}/{x}/{y}.png';
-	this.cloudmade = new L.TileLayer(this.cloudmadeUrl, { maxZoom: 18 });
+	this.message.html('<li>Locating&hellip;</li>');
+
+	this.poly.setMap(this.map);
+
+	this.watch_id = navigator.geolocation.watchPosition(this.location_found, this.location_error);
+};
+
+Tweetdar.prototype.on_location_found = function(position) {
+	this.message.html('<li>Found: '+position.coords.latitude+','+position.coords.longitude+'</li>');
+	
+	latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+	this.map.panTo(latlng);
+
+	path = this.poly.getPath();
+	path.push(latlng);
+
+	now = Math.round(new Date().getTime() / 1000);
+
+	self = this;
+
+	if (this.last_update === false || (now - this.last_update) > 10) {
 		
-	this.map.setView(new L.LatLng(51.505, -0.09), 15).addLayer(this.cloudmade);
+		get_tweets(position.coords.latitude, position.coords.longitude, function(tweet) {
+			marker = new google.maps.Marker({
+				position: new google.maps.LatLng(
+						tweet.geo.coordinates[0], 
+						tweet.geo.coordinates[1]
+					),
+				map: self.map
+			});
 
-	this.message.append('<li>Locating&hellip;</li>');
+			google.maps.event.addListener(marker, 'click', (function(marker, i) {
+				return function() {
+					self.infowindow.setContent(tweet_popup(tweet));
+					self.infowindow.open(self.map, marker);
+					twttr.widgets.load();
+				}
+			})(marker, i));
+		});
 
-	this.map.locateAndSetView(15);
+		this.last_update = now;
+	}
+}
 
-	this.map.on('locationfound', this.location_found);
+Tweetdar.prototype.on_location_error = function(position_error) {
+	
+	switch (position_error.code) {
+		case 1:
+			error = 'No permission for location';
+		break;
+
+		case 2:
+			error = 'Position couldn\'t be determined';
+		break;
+
+		case 3:
+			error = 'Timeout';
+		break;
+
+		default:
+			error = 'An error occured';
+		break;
+	}
+
+	this.message.html('<li>'+error+'</li>');
+}
+
+Tweetdar.prototype.location_found = function(position) {
+	tweetdar.on_location_found(position);
 };
 
-Tweetdar.prototype.location_found = function(e) {
-	$('#message').append('<li>Found: '+e.latlng.lat+','+e.latlng.lng+'</li>');
-};
+Tweetdar.prototype.location_error = function(position_error) {
+	tweetdar.on_location_error(position_error);
+}
 
-$(function() {
-	tweetdar = new Tweetdar();
-	tweetdar.init_map();
-});
+function tweet_popup(tweet) {
+	return '<div class="tweet_content"><img src="'+tweet.profile_image_url+'" alt="" /><blockquote>'+tweet.text+'</blockquote><div class="tweet_user"><a href="https://twitter.com/'+tweet.from_user+'" class="twitter-follow-button" data-show-count="false">Follow @'+tweet.from_user+'</a></div></div>';
+}
 
-/*
 function get_tweets(latitude, longitude, tweet_loop) {
 	$.getJSON('http://search.twitter.com/search.json?geocode='+latitude+','+longitude+',1km&result_type=recent&rpp=100&callback=?', function(data) {
 		if (data.results) {
@@ -47,101 +126,7 @@ function get_tweets(latitude, longitude, tweet_loop) {
 	});
 }
 
-function tweet_popup(tweet) {
-	return '<div class="tweet_content"><img src="'+tweet.profile_image_url+'" alt="" /><blockquote>'+tweet.text+'</blockquote><div class="tweet_user"><a href="https://twitter.com/'+tweet.from_user+'" class="twitter-follow-button" data-show-count="false">Follow @'+tweet.from_user+'</a></div></div>';
-}
-
-function update_location(e) {
-	//map.setView(e.latlng);
-	$('#message ul').append('<li>'+e.latlng.lat+','+e.latlng.lng+'</li>');
-	//update_poly(e.latlng);
-	//$('#message').fadeOut();
-	//update_position_leaflet(map, e.latlng.lat, e.latlng.lng);
-}
-
-function update_poly(latlng) {
-	if (polyline === undefined) {
-		polyline = new L.Polyline([latlng], {color: 'red'});
-	} else {
-		polyline.addLatLng(latlng);
-	}
-}
-
-function update_position_leaflet(latitude, longitude) {
-		get_tweets(latitude, longitude, function(tweet) {
-			marker = new L.Marker(new L.LatLng(tweet.geo.coordinates[0], tweet.geo.coordinates[1]));
-			map.addLayer(marker);
-			marker.bindPopup(tweet_popup(tweet));
-			marker.on('click', function(e) {
-				twttr.widgets.load();
-			});
-		});
-	}
-
 $(function() {
-	
-	navigator.geolocation.getCurrentPosition(show_leafletmap);
-
-	function show_leafletmap(position) {
-		var map = new L.Map('map', {
-			scrollWheelZoom: false
-		});
-
-		var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/ce3741232bc240ad97bdba9bc6bde548/997/256/{z}/{x}/{y}.png',
-		    cloudmade = new L.TileLayer(cloudmadeUrl, { maxZoom: 18 });
-		
-		//var current_location = new L.LatLng(position.coords.latitude, position.coords.longitude);
-		map.setView(new L.LatLng(51.505, -0.09), 15).addLayer(cloudmade);
-		//update_position_leaflet(map, position.coords.latitude, position.coords.longitude);
-
-		$('#message').html('<ul><li>Locating&hellip;</li></ul>');
-
-		//polyline = new L.Polyline([current_location], {color: 'red'});
-		//map.addLayer(polyline);
-
-		map.locateAndSetView(15);
-
-		map.on('locationfound', update_location);
-
-		
-	}
-
-	
-
-	
-
-	function show_gmap(position) {
-		map_options = {
-			zoom: 15,
-			center: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
-			mapTypeId: google.maps.MapTypeId.ROADMAP
-		};
-
-		map = new google.maps.Map(
-			document.getElementById("map"),
-	        map_options
-		);
-
-		infowindow = new google.maps.InfoWindow();
-
-		get_tweets(position.coords.latitude, position.coords.longitude, function(tweet) {
-			marker = new google.maps.Marker({
-				position: new google.maps.LatLng(
-						tweet.geo.coordinates[0], 
-						tweet.geo.coordinates[1]
-					),
-				map: map
-			});
-
-			google.maps.event.addListener(marker, 'click', (function(marker, i) {
-				return function() {
-					infowindow.setContent(tweet_popup(tweet));
-					infowindow.open(map, marker);
-					twttr.widgets.load();
-				}
-			})(marker, i));
-		});
-	}
-
+	tweetdar = new Tweetdar();
+	tweetdar.init_map();
 });
-*/
