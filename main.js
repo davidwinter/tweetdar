@@ -19,6 +19,33 @@ function tweet_popup(tweet) {
 	return '<div class="tweet_content"><img src="'+tweet.profile_image_url+'" alt="" /><blockquote>'+tweet.text+'</blockquote><div class="tweet_user"><a href="https://twitter.com/'+tweet.from_user+'" class="twitter-follow-button" data-show-count="false">Follow @'+tweet.from_user+'</a></div></div>';
 }
 
+function update_location(e) {
+	//map.setView(e.latlng);
+	$('#message ul').append('<li>'+e.latlng.lat+','+e.latlng.lng+'</li>');
+	update_poly(e.latlng);
+	//$('#message').fadeOut();
+	update_position_leaflet(map, e.latlng.lat, e.latlng.lng);
+}
+
+function update_poly(latlng) {
+	if (polyline === undefined) {
+		polyline = new L.Polyline([latlng], {color: 'red'});
+	} else {
+		polyline.addLatLng(latlng);
+	}
+}
+
+function update_position_leaflet(latitude, longitude) {
+		get_tweets(latitude, longitude, function(tweet) {
+			marker = new L.Marker(new L.LatLng(tweet.geo.coordinates[0], tweet.geo.coordinates[1]));
+			map.addLayer(marker);
+			marker.bindPopup(tweet_popup(tweet));
+			marker.on('click', function(e) {
+				twttr.widgets.load();
+			});
+		});
+	}
+
 $(function() {
 	
 	navigator.geolocation.getCurrentPosition(show_leafletmap);
@@ -42,35 +69,14 @@ $(function() {
 
 		map.locateAndSetView(15);
 
-		map.on('locationfound', function(e) {
-			//map.setView(e.latlng);
-			$('#message ul').append('<li>'+e.latlng.lat+','+e.latlng.lng+'</li>');
-			update_poly(e.latlng);
-			//$('#message').fadeOut();
-			update_position_leaflet(map, e.latlng.lat, e.latlng.lng);
-		});
+		map.on('locationfound', update_location);
 
 		
 	}
 
-	function update_poly(latlng) {
-		if (polyline === undefined) {
-			polyline = new L.Polyline([latlng], {color: 'red'});
-		} else {
-			polyline.addLatLng(latlng);
-		}
-	}
+	
 
-	function update_position_leaflet(map, latitude, longitude) {
-		get_tweets(latitude, longitude, function(tweet) {
-			marker = new L.Marker(new L.LatLng(tweet.geo.coordinates[0], tweet.geo.coordinates[1]));
-			map.addLayer(marker);
-			marker.bindPopup(tweet_popup(tweet));
-			marker.on('click', function(e) {
-				twttr.widgets.load();
-			});
-		});
-	}
+	
 
 	function show_gmap(position) {
 		map_options = {
