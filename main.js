@@ -6,7 +6,14 @@ var Tweetdar = function() {
 	this.map_options = {
 		zoom: 15,
 		center: new google.maps.LatLng(51.505, -0.09),
-		mapTypeId: google.maps.MapTypeId.ROADMAP
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+		panControl: false,
+		streetViewControl: false,
+		mapTypeControl: false,
+		zoomControlOptions: {
+			position: google.maps.ControlPosition.LEFT_CENTER,
+			style: google.maps.ZoomControlStyle.SMALL
+		}
 	};
 
 	this.map = new google.maps.Map(
@@ -31,7 +38,7 @@ var Tweetdar = function() {
 
 Tweetdar.prototype.init_map = function() {
 
-	this.message.html('<li>Locating&hellip;</li>');
+	this.message.html('Locating&hellip;');
 
 	this.poly.setMap(this.map);
 
@@ -39,7 +46,7 @@ Tweetdar.prototype.init_map = function() {
 };
 
 Tweetdar.prototype.on_location_found = function(position) {
-	this.message.html('<li>Found: '+position.coords.latitude+','+position.coords.longitude+'</li>');
+	this.message.html(position.coords.latitude+','+position.coords.longitude+' @ '+position.coords.accuracy+'m');
 	
 	latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
@@ -52,7 +59,7 @@ Tweetdar.prototype.on_location_found = function(position) {
 
 	self = this;
 
-	if (this.last_update === false || (now - this.last_update) > 10) {
+	if (this.last_update === false || (now - this.last_update) > 60) {
 		
 		get_tweets(position.coords.latitude, position.coords.longitude, function(tweet) {
 			marker = new google.maps.Marker({
@@ -65,7 +72,7 @@ Tweetdar.prototype.on_location_found = function(position) {
 
 			google.maps.event.addListener(marker, 'click', (function(marker, i) {
 				return function() {
-					self.infowindow.setContent(tweet_popup(tweet));
+					self.infowindow.setContent(self.tweet_content(tweet));
 					self.infowindow.open(self.map, marker);
 					twttr.widgets.load();
 				}
@@ -74,6 +81,11 @@ Tweetdar.prototype.on_location_found = function(position) {
 
 		this.last_update = now;
 	}
+}
+
+Tweetdar.prototype.tweet_content = function(tweet) {
+	
+	return '<div class="tweet_content"><img src="'+tweet.profile_image_url+'" alt="" /><blockquote>'+tweet.text+'</blockquote><div class="tweet_user"><a href="https://twitter.com/'+tweet.from_user+'" class="twitter-follow-button" data-show-count="false">Follow @'+tweet.from_user+'</a></div></div>';
 }
 
 Tweetdar.prototype.on_location_error = function(position_error) {
@@ -105,10 +117,6 @@ Tweetdar.prototype.location_found = function(position) {
 
 Tweetdar.prototype.location_error = function(position_error) {
 	tweetdar.on_location_error(position_error);
-}
-
-function tweet_popup(tweet) {
-	return '<div class="tweet_content"><img src="'+tweet.profile_image_url+'" alt="" /><blockquote>'+tweet.text+'</blockquote><div class="tweet_user"><a href="https://twitter.com/'+tweet.from_user+'" class="twitter-follow-button" data-show-count="false">Follow @'+tweet.from_user+'</a></div></div>';
 }
 
 function get_tweets(latitude, longitude, tweet_loop) {
