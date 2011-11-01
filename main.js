@@ -16,19 +16,16 @@ Tweetdar.prototype.init_map = function() {
 	this.map.setView(new L.LatLng(51.505, -0.09), 15).addLayer(this.cloudmade);
 
 	this.message.append('<li>Locating&hellip;</li>');
-
-	this.map.locateAndSetView(15);
-
-	this.map.on('locationfound', this.location_found);
 };
 
-Tweetdar.prototype.location_found = function(e) {
-	$('#message').append('<li>Found: '+e.latlng.lat+','+e.latlng.lng+'</li>');
+Tweetdar.prototype.location_found = function(position) {
+	$('#message').append('<li>Found: '+position.coords.latitude+','+position.coords.longitude+'</li>');
 };
 
 $(function() {
 	tweetdar = new Tweetdar();
 	tweetdar.init_map();
+	navigator.geolocation.watchPosition(tweetdar.location_found);
 });
 
 /*
