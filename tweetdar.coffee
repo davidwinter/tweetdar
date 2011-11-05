@@ -17,6 +17,7 @@ class Tweetdar
 				coords:
 					latitude: position.lat
 					longitude: position.lng
+					accuracy: 0
 		
 		@map = new L.Map('map',
 			scrollWheelZoom: false

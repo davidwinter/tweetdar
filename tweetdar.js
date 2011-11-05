@@ -18,7 +18,8 @@
         return this.location_found({
           coords: {
             latitude: position.lat,
-            longitude: position.lng
+            longitude: position.lng,
+            accuracy: 0
           }
         });
       }, this));
