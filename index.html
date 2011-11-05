@@ -4,15 +4,21 @@
 		<title>tweetdar - find tweeters near you</title>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 
+		<link rel="stylesheet" href="leaflet/dist/leaflet.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="leaflet/dist/leaflet.ie.css" /><![endif]-->
 		<link rel="stylesheet" href="main.css" />
 
 	</head>
 	<body>
 		<div id="map"></div>
-		<div id="message" />
+		<div id="info">
+			<p id="message" />
+			<p><a href="#" id="update">Update location</a> / <a href="#" id="current">Tweets from current map position</a></p>
+			<p>tweetdar by <a href="https://twitter.com/davidwinter">@davidwinter</a></p>
+		</div>
 		<script src="http://platform.twitter.com/widgets.js"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-		<script src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
-		<script src="main.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+		<script src="leaflet/dist/leaflet.js"></script>
+		<script src="tweetdar.js"></script>
 	</body>
 </html>
