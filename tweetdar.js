@@ -26,9 +26,7 @@
         scrollWheelZoom: false
       });
       cloudmadeUrl = 'http://{s}.tile.cloudmade.com/ce3741232bc240ad97bdba9bc6bde548/997/256/{z}/{x}/{y}.png';
-      cloudmade = new L.TileLayer(cloudmadeUrl, {
-        maxZoom: 14
-      });
+      cloudmade = new L.TileLayer(cloudmadeUrl);
       this.current_location = new L.LatLng(51.505, -0.09);
       this.map.setView(this.current_location, 15).addLayer(cloudmade);
       this.update_location();

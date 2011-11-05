@@ -23,9 +23,7 @@ class Tweetdar
 		)
 
 		cloudmadeUrl = 'http://{s}.tile.cloudmade.com/ce3741232bc240ad97bdba9bc6bde548/997/256/{z}/{x}/{y}.png'
-		cloudmade = new L.TileLayer(cloudmadeUrl,
-			maxZoom: 14
-		)
+		cloudmade = new L.TileLayer(cloudmadeUrl)
 
 		@current_location = new L.LatLng(51.505, -0.09)
 		@map.setView(@current_location, 15).addLayer(cloudmade)
